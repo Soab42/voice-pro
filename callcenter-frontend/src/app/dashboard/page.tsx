@@ -84,21 +84,31 @@ export default function DashboardPage() {
   const activeCount = calls.filter((c) => c.status !== 'COMPLETED' && c.status !== 'FAILED' && c.status !== 'NO_ANSWER').length;
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex items-center justify-between">
+    <div className="h-screen flex flex-col">
+      <header className="flex items-center justify-between p-4 border-b">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-600">{user.role}</span>
           <button onClick={logout} className="px-3 py-1 rounded-md border hover:bg-gray-100">Logout</button>
         </div>
-      </div>
-      <div className="mt-2 text-sm text-gray-600">Active calls: {activeCount}</div>
-      {/* Agent dialer */}
-      {user.role === 'AGENT' && <Dialer token={token} refresh={refresh} />}
-      {/* Supervisor or Admin campaign manager */}
-      {['SUPERVISOR', 'ADMIN'].includes(user.role) && <CampaignManager token={token} />}
-      {/* Call list for all roles */}
-      <CallList calls={calls} role={user.role} token={token} refresh={refresh} />
+      </header>
+
+      <main className="flex-1 flex overflow-hidden">
+        {/* Main content area */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* Supervisor or Admin campaign manager */}
+          {['SUPERVISOR', 'ADMIN'].includes(user.role) && <CampaignManager token={token} />}
+          {/* Call list for all roles */}
+          <CallList calls={calls} role={user.role} token={token} refresh={refresh} />
+        </div>
+
+        {/* Dialer area */}
+        <div className="w-80 border-l p-4 flex flex-col">
+          <div className="mt-2 text-sm text-gray-600">Active calls: {activeCount}</div>
+          <div className="flex-1" />
+          <Dialer token={token} refresh={refresh} />
+        </div>
+      </main>
     </div>
   );
 }

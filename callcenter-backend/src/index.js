@@ -13,6 +13,9 @@ const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
 const dotenv = require('dotenv');
 const socketIO = require('socket.io');
+const helmet = require('helmet');
+const morgan = require('morgan');
+
 
 // Load environment variables from .env file
 dotenv.config();
@@ -20,9 +23,33 @@ dotenv.config();
 // Initialize Prisma client (database ORM)
 const prisma = new PrismaClient();
 
+// Prisma middleware to log queries
+prisma.$use(async (params, next) => {
+  const before = Date.now();
+
+  const result = await next(params);
+
+  const after = Date.now();
+
+  console.log(
+    `Prisma Query: ${params.model}.${params.action} took ${after - before}ms`
+  );
+  // For debugging, you can uncomment the next line to see the full query parameters
+  // console.log('Query Params:', JSON.stringify(params.args, null, 2));
+
+  return result;
+});
+
 // Create Express app and HTTP server
 const app = express();
 const server = http.createServer(app);
+
+// Helmet secures headers
+app.use(helmet());
+
+// Morgan logs requests (method, URL, status, response time)
+app.use(morgan('dev'));  // or 'dev' for colored concise logs
+
 
 // Configure Socket.IO for real‑time updates
 const io = new socketIO.Server(server, {
@@ -51,6 +78,7 @@ const callRouter = require('./routes/calls');
 const campaignRouter = require('./routes/campaign');
 const supervisorRouter = require('./routes/supervisor');
 const telnyxWebhookRouter = require('./routes/telnyxWebhook');
+const numbersRouter = require('./routes/numbers');
 
 // Mount routes
 app.use('/api/auth', authRouter(prisma));
@@ -58,10 +86,16 @@ app.use('/api/calls', callRouter(prisma));
 app.use('/api/campaign', campaignRouter(prisma));
 app.use('/api/supervisor', supervisorRouter(prisma));
 app.use('/api/telnyx/webhook', telnyxWebhookRouter(prisma));
+app.use('/api/numbers', numbersRouter(prisma));
 
 // Health check route
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({ status: 'server is running on 4000' });
 });
 
 // Handle errors centrally

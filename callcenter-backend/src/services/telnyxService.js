@@ -7,8 +7,6 @@
  * and other settings are pulled from environment variables.
  */
 
-const fetch = require('node-fetch');
-
 const TELNYX_BASE = 'https://api.telnyx.com/v2';
 
 function authHeaders() {

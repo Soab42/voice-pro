@@ -36,22 +36,39 @@ export default function Dialer({ token, refresh }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow p-4 mt-4">
+    <div className="w-full">
       <h2 className="text-lg font-semibold mb-2">Outbound Call</h2>
       {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
       {success && <div className="text-green-600 text-sm mb-2">Call initiated!</div>}
-      <div className="flex gap-2">
+      <div className="flex flex-col items-center">
         <input
           type="tel"
           value={number}
           onChange={(e) => setNumber(e.target.value)}
           placeholder="Enter phone number"
-          className="flex-1 border p-2 rounded-md"
+          className="w-full text-center text-2xl mb-4 p-2 rounded-md border"
         />
+        <div className="grid grid-cols-3 gap-4">
+          {[...'123456789*0#'].map((char) => (
+            <button
+              key={char}
+              onClick={() => setNumber(number + char)}
+              className="text-2xl w-16 h-16 rounded-full bg-gray-200 hover:bg-gray-300"
+            >
+              {char}
+            </button>
+          ))}
+          <button
+            onClick={() => setNumber(number.slice(0, -1))}
+            className="text-2xl w-16 h-16 rounded-full bg-gray-200 hover:bg-gray-300"
+          >
+            &larr;
+          </button>
+        </div>
         <button
           onClick={handleDial}
           disabled={loading || !number}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          className="mt-4 px-8 py-4 bg-green-600 text-white rounded-full hover:bg-green-700 text-2xl"
         >
           {loading ? 'Dialing...' : 'Call'}
         </button>
