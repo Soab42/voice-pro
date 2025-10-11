@@ -23,22 +23,6 @@ dotenv.config();
 // Initialize Prisma client (database ORM)
 const prisma = new PrismaClient();
 
-// Prisma middleware to log queries
-prisma.$use(async (params, next) => {
-  const before = Date.now();
-
-  const result = await next(params);
-
-  const after = Date.now();
-
-  console.log(
-    `Prisma Query: ${params.model}.${params.action} took ${after - before}ms`
-  );
-  // For debugging, you can uncomment the next line to see the full query parameters
-  // console.log('Query Params:', JSON.stringify(params.args, null, 2));
-
-  return result;
-});
 
 // Create Express app and HTTP server
 const app = express();

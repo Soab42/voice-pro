@@ -1,5 +1,5 @@
 {
-  "name": "callcenter-backend",
+  "name": "backend",
   "version": "1.0.0",
   "description": "Backend service for a full-featured call center dashboard built on Telnyx's Voice API",
   "main": "src/index.js",
@@ -8,7 +8,7 @@
     "dev": "nodemon src/index.js"
   },
   "dependencies": {
-    "@prisma/client": "^5.17.0",
+    "@prisma/client": "^6.17.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -17,10 +17,10 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "node-fetch": "^3.3.2",
-    "prisma": "^5.17.0",
     "socket.io": "^4.7.5"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "prisma": "^6.17.1"
   }
 }
