@@ -29,7 +29,7 @@ const Dialer = () => {
     setDialedNumber("");
   };
 
-    const handleCall = async () => {
+  const handleCall = async () => {
     if (!dialedNumber || isCalling) return;
 
     const numberToCall = dialedNumber.startsWith("+")

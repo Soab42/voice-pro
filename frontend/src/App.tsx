@@ -19,11 +19,19 @@ function App() {
       <Routes>
         <Route
           path="/login"
-          element={<PublicRoute><Login /></PublicRoute>}
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
         />
         <Route
           path="/register"
-          element={<PublicRoute><Register /></PublicRoute>}
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
         />
         <Route
           path="/"

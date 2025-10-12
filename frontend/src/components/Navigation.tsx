@@ -56,7 +56,7 @@ export function Navigation() {
     </>
   );
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   return (
     <>
