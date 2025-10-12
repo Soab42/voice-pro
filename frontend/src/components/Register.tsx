@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { login, getTelnyxToken } from '../../lib/api';
+import { useNavigate } from 'react-router-dom';
+import { register } from '../../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 
-const Login: React.FC = () => {
+const Register: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation() as any;
-  const from = location.state?.from?.pathname || '/';
-
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,16 +19,10 @@ const Login: React.FC = () => {
     setError(null);
     setLoading(true);
     try {
-      const { token, user } = await login(email, password);
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      const { token: telnyxToken } = await getTelnyxToken();
-      localStorage.setItem('telnyxToken', telnyxToken);
-
-      navigate(from, { replace: true });
+      await register(name, email, password);
+      navigate('/login');
     } catch (e: any) {
-      setError(e?.message || 'Login failed');
+      setError(e?.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -40,10 +32,20 @@ const Login: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Sign in</CardTitle>
+          <CardTitle>Create an account</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -66,16 +68,8 @@ const Login: React.FC = () => {
             </div>
             {error && <div className="text-sm text-red-500">{error}</div>}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Creating account...' : 'Create Account'}
             </Button>
-            <div className="text-center">
-              <p className="text-sm">
-                Don't have an account?{' '}
-                <Link to="/register" className="text-blue-500 hover:underline">
-                  Sign up
-                </Link>
-              </p>
-            </div>
           </form>
         </CardContent>
       </Card>
@@ -83,4 +77,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default Register;

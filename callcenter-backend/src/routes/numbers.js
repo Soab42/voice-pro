@@ -12,13 +12,35 @@ module.exports = function numbersRouter(prisma) {
   // Create (add) a phone number
   router.post("/", requireAuth, async (req, res, next) => {
     try {
-      const { phone, label = null, provider = null, active = true } = req.body || {};
+      const {
+        phone,
+        label = null,
+        provider = null,
+        active = true,
+        name = null,
+        email = null,
+        address = null,
+        designation = null,
+      } = req.body || {};
       if (!phone || !isValidPhone(phone)) {
-        return res.status(400).json({ error: "Invalid or missing 'phone' (use E.164 like +15551234567)" });
+        return res
+          .status(400)
+          .json({
+            error: "Invalid or missing 'phone' (use E.164 like +15551234567)",
+          });
       }
 
       const created = await prisma.phoneNumber.create({
-        data: { phone: phone.trim(), label, provider, active: Boolean(active) },
+        data: {
+          phone: phone.trim(),
+          label,
+          provider,
+          active: Boolean(active),
+          name,
+          email,
+          address,
+          designation,
+        },
       });
 
       // Notify clients
@@ -36,7 +58,9 @@ module.exports = function numbersRouter(prisma) {
   // List all phone numbers
   router.get("/", requireAuth, async (req, res, next) => {
     try {
-      const items = await prisma.phoneNumber.findMany({ orderBy: { createdAt: "desc" } });
+      const items = await prisma.phoneNumber.findMany({
+        orderBy: { createdAt: "desc" },
+      });
       res.json(items);
     } catch (err) {
       next(err);
@@ -46,7 +70,9 @@ module.exports = function numbersRouter(prisma) {
   // Get a single phone number by id
   router.get("/:id", requireAuth, async (req, res, next) => {
     try {
-      const item = await prisma.phoneNumber.findUnique({ where: { id: req.params.id } });
+      const item = await prisma.phoneNumber.findUnique({
+        where: { id: req.params.id },
+      });
       if (!item) return res.status(404).json({ error: "Not found" });
       res.json(item);
     } catch (err) {
@@ -57,11 +83,16 @@ module.exports = function numbersRouter(prisma) {
   // Update phone number metadata
   router.put("/:id", requireAuth, async (req, res, next) => {
     try {
-      const { label, active, provider } = req.body || {};
+      const { label, active, provider, name, email, address, designation } =
+        req.body || {};
       const data = {};
       if (typeof label !== "undefined") data.label = label;
       if (typeof provider !== "undefined") data.provider = provider;
       if (typeof active !== "undefined") data.active = Boolean(active);
+      if (typeof name !== "undefined") data.name = name;
+      if (typeof email !== "undefined") data.email = email;
+      if (typeof address !== "undefined") data.address = address;
+      if (typeof designation !== "undefined") data.designation = designation;
 
       const updated = await prisma.phoneNumber.update({
         where: { id: req.params.id },
@@ -93,4 +124,3 @@ module.exports = function numbersRouter(prisma) {
 
   return router;
 };
-

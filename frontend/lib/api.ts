@@ -1,10 +1,12 @@
 // Simple API wrapper for the call center backend
-export const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+export const backendUrl =
+  import.meta.env.VITE_BACKEND_URL + "/api" || "http://localhost:4000/api";
 
 export function getAuthToken(): string | null {
   try {
-    if (typeof localStorage !== 'undefined') {
-      const fromStorage = localStorage.getItem('token') || localStorage.getItem('authToken');
+    if (typeof localStorage !== "undefined") {
+      const fromStorage =
+        localStorage.getItem("token") || localStorage.getItem("authToken");
       if (fromStorage) return fromStorage;
     }
   } catch {}
@@ -14,20 +16,23 @@ export function getAuthToken(): string | null {
 }
 
 // Generic helper for fetch requests
-export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+export async function apiFetch<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<T> {
   const token = getAuthToken();
   const res = await fetch(`${backendUrl}${path}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
-    cache: 'no-store',
+    cache: "no-store",
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || 'Request failed');
+    throw new Error(text || "Request failed");
   }
   return res.json();
 }
@@ -36,28 +41,117 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 export interface PhoneNumber {
   id: string;
   phone: string;
-  label?: string | null;
-  provider?: string | null;
+  label: string | null;
+  name: string | null;
+  email: string | null;
+  address: string | null;
+  designation: string | null;
+  provider: string | null;
   active: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export function listNumbers(): Promise<PhoneNumber[]> {
-  return apiFetch<PhoneNumber[]>('/api/numbers');
+  return apiFetch<PhoneNumber[]>("/numbers");
 }
 
-export function createNumber(payload: {
-  phone: string;
-  label?: string | null;
-  provider?: string | null;
-  active?: boolean;
-}): Promise<PhoneNumber> {
-  return apiFetch<PhoneNumber>('/api/numbers', {
-    method: 'POST',
-    body: JSON.stringify(payload),
+export const createNumber = async (
+  data: Pick<
+    PhoneNumber,
+    | "phone"
+    | "label"
+    | "name"
+    | "email"
+    | "address"
+    | "designation"
+    | "provider"
+    | "active"
+  >
+): Promise<PhoneNumber> => {
+  return apiFetch("/numbers", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
   });
+};
+
+export const login = async (email, password) => {
+  const response = await fetch(`${backendUrl}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Login failed");
+  }
+
+  return response.json();
+};
+
+export const register = async (name, email, password) => {
+  const response = await fetch(`${backendUrl}/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name, email, password }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Registration failed");
+  }
+
+  return response.json();
+};
+
+export interface Call {
+  id: string;
+  agentId: string | null;
+  customerNumber: string;
+  direction: string;
+  status:
+    | "INITIATED"
+    | "RINGING"
+    | "ACTIVE"
+    | "COMPLETED"
+    | "NO_ANSWER"
+    | "FAILED";
+  telnyxLegA: string | null;
+  telnyxLegB: string | null;
+  telnyxConferenceId: string | null;
+  recordingUrl: string | null;
+  aiSessionId: string | null;
+  cost: number | null;
+  startedAt: string;
+  answeredAt: string | null;
+  endedAt: string | null;
 }
+
+export const getCall = async (callId: string): Promise<Call> => {
+  return apiFetch(`/calls/${callId}`);
+};
+
+export const hangupCall = async (callId: string): Promise<void> => {
+  return apiFetch(`/calls/${callId}/hangup`, {
+    method: "POST",
+  });
+};
+
+export const getCalls = async (): Promise<Call[]> => {
+  return apiFetch("/calls/active");
+};
+
+export const getTelnyxToken = async (): Promise<{ token: string }> => {
+  return apiFetch("/auth/telnyx-token");
+};
 
 // Auth helpers
 export interface LoginResponseUser {
@@ -71,31 +165,9 @@ export interface LoginResponse {
   token: string;
   user: LoginResponseUser;
 }
-export function login(email: string, password: string): Promise<LoginResponse> {
-  return apiFetch<LoginResponse>('/api/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
-}
-
-// Calls helpers
-export interface Call {
-  id: string;
-  customerNumber: string;
-  direction: string; // 'inbound' | 'outbound'
-  status: 'INITIATED' | 'RINGING' | 'ACTIVE' | 'COMPLETED' | 'NO_ANSWER' | 'FAILED';
-  startedAt: string;
-  answeredAt?: string | null;
-  endedAt?: string | null;
-  agent?: {
-    id: string;
-    name: string;
-    email: string;
-  } | null;
-}
 
 export function listCallHistory(): Promise<Call[]> {
-  return apiFetch<Call[]>('/api/calls/history');
+  return apiFetch<Call[]>("/calls/history");
 }
 
 // Start an outbound call
@@ -108,31 +180,21 @@ export function createOutboundCall(
   to: string,
   options?: { record?: boolean; useAI?: boolean; aiProvider?: string }
 ): Promise<CreateCallResponse> {
-  return apiFetch<CreateCallResponse>('/api/calls', {
-    method: 'POST',
+  return apiFetch<CreateCallResponse>("/calls", {
+    method: "POST",
     body: JSON.stringify({ to, ...(options || {}) }),
-  });
-}
-
-// Hang up a call by ID
-export function hangupCall(callId: string): Promise<{ ok: boolean }> {
-  return apiFetch<{ ok: boolean }>(`/api/calls/${callId}/hangup`, {
-    method: 'POST',
   });
 }
 
 // List active calls
 export function listActiveCalls(): Promise<Call[]> {
-  return apiFetch<Call[]>('/api/calls/active');
-}
-
-// Get a single call by ID
-export function getCall(callId: string): Promise<Call> {
-  return apiFetch<Call>(`/api/calls/${callId}`);
+  return apiFetch<Call[]>("/calls/active");
 }
 
 // Get call history for a specific customer number
-export function getCallHistoryByNumber(customerNumber: string): Promise<Call[]> {
+export function getCallHistoryByNumber(
+  customerNumber: string
+): Promise<Call[]> {
   const encodedNumber = encodeURIComponent(customerNumber);
-  return apiFetch<Call[]>(`/api/calls/history/${encodedNumber}`);
+  return apiFetch<Call[]>(`/calls/history/${encodedNumber}`);
 }

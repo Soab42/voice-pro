@@ -58,8 +58,6 @@ module.exports = function callsRouter(prisma) {
     }
   });
 
-
-
   // List active calls (optional helper)
   router.get("/active", requireAuth, async (req, res, next) => {
     try {
@@ -114,7 +112,6 @@ module.exports = function callsRouter(prisma) {
     }
   );
 
-  
   // Get a single call by ID
   router.get("/:callId", requireAuth, async (req, res, next) => {
     try {
@@ -137,9 +134,9 @@ module.exports = function callsRouter(prisma) {
       }
 
       // Optional: Check permissions
-      if (req.user.role === "AGENT" && call.agentId !== req.user.userId) {
-        return res.status(403).json({ error: "Forbidden" });
-      }
+      // if (req.user.role === "AGENT" && call.agentId !== req.user.userId) {
+      //   return res.status(403).json({ error: "Forbidden" });
+      // }
 
       res.json(call);
     } catch (err) {

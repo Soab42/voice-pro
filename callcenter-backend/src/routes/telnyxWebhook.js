@@ -41,12 +41,12 @@ module.exports = function telnyxWebhookRouter(prisma) {
       // Handler based on event type
       switch (event) {
         case "call.initiated": {
-          if (direction === "inbound") {
+          if (direction === "incoming") {
             // Create a new call record for inbound calls
             if (!call) {
               call = await prisma.call.create({
                 data: {
-                  customerNumber: payload.from ?? "unknown",
+                  customerNumber: payload.from ?? payload.caller_id_name,
                   direction: "inbound",
                   status: "RINGING",
                   telnyxLegA: callControlId,
@@ -59,19 +59,19 @@ module.exports = function telnyxWebhookRouter(prisma) {
               });
             }
             // Auto‑answer inbound call
-            await answer(callControlId);
+            // await answer(callControlId);
             // Optionally start the built‑in AI assistant on inbound calls
-            const aiConfig = {
-              prompt: process.env.AI_PROMPT || "You are a helpful agent.",
-              language: process.env.AI_LANGUAGE || "en-US",
-              voice: process.env.AI_VOICE || "alloy",
-            };
-            try {
-              await startAI(callControlId, aiConfig);
-            } catch (err) {
-              console.error("Failed to start AI:", err.message);
-            }
-            req.broadcast("callUpdate", { id: call.id, status: "RINGING" });
+            // const aiConfig = {
+            //   prompt: process.env.AI_PROMPT || "You are a helpful agent.",
+            //   language: process.env.AI_LANGUAGE || "en-US",
+            //   voice: process.env.AI_VOICE || "alloy",
+            // };
+            // try {
+            //   await startAI(callControlId, aiConfig);
+            // } catch (err) {
+            //   console.error("Failed to start AI:", err.message);
+            // }
+            req.broadcast("callUpdate", { id: call.id, status: "RINGING", customerNumber: payload.from ?? payload.caller_id_name });
           } else {
             // Outbound call is ringing
             if (call) {
@@ -143,6 +143,19 @@ module.exports = function telnyxWebhookRouter(prisma) {
               await prisma.call.update({
                 where: { id: call.id },
                 data: { recordingUrl },
+              });
+            }
+          }
+          break;
+        }
+
+        case "call.cost": {
+          if (call) {
+            const cost = payload?.total_cost;
+            if (cost) {
+              await prisma.call.update({
+                where: { id: call.id },
+                data: { cost: parseFloat(cost) },
               });
             }
           }

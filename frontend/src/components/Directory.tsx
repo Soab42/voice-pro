@@ -14,6 +14,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { createNumber, listNumbers, PhoneNumber } from '../../lib/api';
 import { getSocket } from '../../lib/socket';
+import { Switch } from './ui/switch';
 
 type Contact = { id: string; name: string; number: string };
 
@@ -25,13 +26,18 @@ const Directory: React.FC<DirectoryProps> = ({ onSelectContact }) => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [newContactName, setNewContactName] = useState('');
   const [newContactNumber, setNewContactNumber] = useState('');
+  const [newContactEmail, setNewContactEmail] = useState('');
+  const [newContactAddress, setNewContactAddress] = useState('');
+  const [newContactDesignation, setNewContactDesignation] = useState('');
+  const [newContactProvider, setNewContactProvider] = useState('');
+  const [newContactActive, setNewContactActive] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const mapToContact = (n: PhoneNumber): Contact => ({
     id: n.id,
-    name: n.label ?? n.phone,
+    name: n.name ?? n.phone,
     number: n.phone,
   });
 
@@ -67,11 +73,22 @@ const Directory: React.FC<DirectoryProps> = ({ onSelectContact }) => {
       const created = await createNumber({
         phone: newContactNumber,
         label: newContactName || null,
+        name: newContactName || null,
+        email: newContactEmail || null,
+        address: newContactAddress || null,
+        designation: newContactDesignation || null,
+        provider: newContactProvider || null,
+        active: newContactActive,
       });
       const newContact = mapToContact(created);
       setContacts((prev) => [newContact, ...prev]);
       setNewContactName('');
       setNewContactNumber('');
+      setNewContactEmail('');
+      setNewContactAddress('');
+      setNewContactDesignation('');
+      setNewContactProvider('');
+      setNewContactActive(true);
       setIsDialogOpen(false);
     } catch (e: any) {
       setError(e?.message || 'Failed to add number');
@@ -113,6 +130,61 @@ const Directory: React.FC<DirectoryProps> = ({ onSelectContact }) => {
                   id="number"
                   value={newContactNumber}
                   onChange={(e) => setNewContactNumber(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  value={newContactEmail}
+                  onChange={(e) => setNewContactEmail(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="address" className="text-right">
+                  Address
+                </Label>
+                <Input
+                  id="address"
+                  value={newContactAddress}
+                  onChange={(e) => setNewContactAddress(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="designation" className="text-right">
+                  Designation
+                </Label>
+                <Input
+                  id="designation"
+                  value={newContactDesignation}
+                  onChange={(e) => setNewContactDesignation(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="provider" className="text-right">
+                  Provider
+                </Label>
+                <Input
+                  id="provider"
+                  value={newContactProvider}
+                  onChange={(e) => setNewContactProvider(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="active" className="text-right">
+                  Active
+                </Label>
+                <Switch
+                  id="active"
+                  checked={newContactActive}
+                  onCheckedChange={setNewContactActive}
                   className="col-span-3"
                 />
               </div>

@@ -10,7 +10,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
+const requireAuth = require("../middleware/auth");
 // Number of salt rounds for bcrypt hashing
 const SALT_ROUNDS = 10;
 
@@ -75,6 +75,18 @@ module.exports = function authRouter(prisma) {
       );
 
       return res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/telnyx-token", requireAuth, async (req, res, next) => {
+    try {
+      const telnyx = require("telnyx")(process.env.TELNYX_API_KEY);
+      const token = await telnyx.sipConnections.createToken({
+        sip_connection_id: process.env.TELNYX_CONNECTION_ID,
+      });
+      res.json({ token: token.token });
     } catch (err) {
       next(err);
     }

@@ -8,6 +8,7 @@ const DialerPanel = ({
   handleNumpadClick,
   handleCall,
   handleDelete,
+  handleClear,
   isCalling,
   error,
 }) => (
@@ -62,6 +63,17 @@ const DialerPanel = ({
         disabled={!dialedNumber}
       >
         <Delete />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className={`rounded-full w-20 h-20 lg:w-36 lg:h-36 transition-opacity ${
+          dialedNumber ? "opacity-100" : "opacity-0"
+        }`}
+        onClick={handleClear}
+        disabled={!dialedNumber}
+      >
+        Clear
       </Button>
     </div>
   </div>

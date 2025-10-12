@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -6,20 +6,15 @@ import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import {
-  Phone,
-  PhoneCall,
-  Clock,
-  MessageSquare,
-  Bot,
-  Star,
-  History,
-  CheckCircle2,
-  TrendingUp,
-} from 'lucide-react';
+import Numbers from './Numbers';
+import { Bot, CheckCircle2, Clock, MessageSquare, Phone, PhoneCall, Star, TrendingUp } from 'lucide-react';
+import { getCalls, Call } from '../../lib/api';
+import { getSocket } from '../../lib/socket';
 
 export function CallCenter() {
   const navigate = useNavigate();
+  const [incomingCalls, setIncomingCalls] = useState<Call[]>([]);
+  const [recentCalls, setRecentCalls] = useState<Call[]>([]);
 
   const callStats = [
     {
@@ -56,55 +51,33 @@ export function CallCenter() {
     }
   ];
 
-  const incomingCalls = [
-    {
-      id: 1,
-      customerName: 'John Smith',
-      customerNumber: '+1 (555) 123-4567',
-      customerEmail: 'john.smith@email.com',
-      accountType: 'Premium',
-      lastContact: '2 days ago',
-      issue: 'Billing inquiry',
-      priority: 'Medium',
-      waitTime: '00:45'
-    },
-    {
-      id: 2,
-      customerName: 'Emily Davis',
-      customerNumber: '+1 (555) 234-5678',
-      customerEmail: 'emily.davis@email.com',
-      accountType: 'Basic',
-      lastContact: '1 week ago',
-      issue: 'Technical support',
-      priority: 'High',
-      waitTime: '02:15'
+  const loadCalls = async () => {
+    try {
+      const calls = await getCalls();
+      setIncomingCalls(calls.filter(c => c.status === 'RINGING'));
+      setRecentCalls(calls.filter(c => c.status === 'COMPLETED'));
+    } catch (error) {
+      console.error('Failed to load calls', error);
     }
-  ];
+  };
 
-  const recentCalls = [
-    {
-      id: 3,
-      customerName: 'Robert Wilson',
-      duration: '6m 23s',
-      outcome: 'Resolved',
-      type: 'Support',
-      timestamp: '10:30 AM',
-      notes: 'Password reset completed, customer satisfied',
-      rating: 5
-    },
-    {
-      id: 4,
-      customerName: 'Sarah Johnson',
-      duration: '3m 45s',
-      outcome: 'Follow-up needed',
-      type: 'Sales',
-      timestamp: '9:15 AM',
-      notes: 'Interested in enterprise plan, sending proposal',
-      rating: 4
-    }
-  ];
+  useEffect(() => {
+    loadCalls();
 
-  const handleAnswerCall = (call) => {
+    const socket = getSocket();
+    const handleCallUpdate = (update: any) => {
+      console.log('callUpdate event received in CallCenter.tsx', update);
+      loadCalls();
+    };
+
+    socket.on('callUpdate', handleCallUpdate);
+
+    return () => {
+      socket.off('callUpdate', handleCallUpdate);
+    };
+  }, []);
+
+  const handleAnswerCall = (call: Call) => {
     navigate(`/call/${call.id}`, { state: { call } });
   };
 
@@ -158,6 +131,7 @@ export function CallCenter() {
           <TabsTrigger value="recent">Recent Calls</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="numbers">Numbers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="queue" className="space-y-4">
@@ -399,6 +373,9 @@ export function CallCenter() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+         <TabsContent value="numbers">
+          <Numbers />
         </TabsContent>
       </Tabs>
     </div>

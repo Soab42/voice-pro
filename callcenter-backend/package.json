@@ -17,7 +17,8 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "node-fetch": "^3.3.2",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "telnyx": "^3.5.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1",

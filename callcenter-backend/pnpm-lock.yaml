@@ -38,6 +38,9 @@ importers:
       socket.io:
         specifier: ^4.7.5
         version: 4.8.1
+      telnyx:
+        specifier: ^3.5.0
+        version: 3.5.0
     devDependencies:
       nodemon:
         specifier: ^3.0.1
@@ -669,6 +672,9 @@ packages:
   supports-color@5.5.0:
     resolution: {integrity: sha512-QjVjwdXIt408MIiAqCX4oUKsgU2EqAGzs2Ppkm4aQYbjm+ZEWEcW4SfFNTr4uMNZma0ey4f5lgLrkB0aX0QMow==}
     engines: {node: '>=4'}
+
+  telnyx@3.5.0:
+    resolution: {integrity: sha512-6n7X46aBazhHwsSERr7UFsjCBlbkMqy0MbKHU2jfyU8vf9AMf9DnFj9yIvUTRK89UXa18iNUvANeHPmrAQKADg==}
 
   tinyexec@1.0.1:
     resolution: {integrity: sha512-5uC6DDlmeqiOwCPmK9jMSdOuZTh8bU39Ys6yidB+UTt5hfZUPGAypSgFRiEp+jbi9qH40BLDvy85jIU88wKSqw==}
@@ -1408,6 +1414,8 @@ snapshots:
   supports-color@5.5.0:
     dependencies:
       has-flag: 3.0.0
+
+  telnyx@3.5.0: {}
 
   tinyexec@1.0.1: {}
 

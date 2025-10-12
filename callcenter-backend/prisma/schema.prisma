@@ -46,6 +46,7 @@ model Call {
   telnyxConferenceId String?
   recordingUrl       String?
   aiSessionId        String?
+  cost               Float?
   startedAt          DateTime   @default(now())
   answeredAt         DateTime?
   endedAt            DateTime?
@@ -81,11 +82,15 @@ model AISession {
 }
 
 model PhoneNumber {
-  id        String   @id @default(cuid())
-  phone     String   @unique
-  label     String?
-  provider  String?
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  phone       String   @unique
+  name        String?
+  email       String?
+  address     String?
+  designation String?
+  label       String?
+  provider    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

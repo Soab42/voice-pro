@@ -8,26 +8,39 @@ import Queue from "./components/Queue";
 import CallHistory from "./components/CallHistory";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./components/Login";
+import Register from "./components/Register";
+import PublicRoute from "./components/PublicRoute";
+
+import { CallProvider } from "./context/CallContext";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<CallCenter />} />
-        <Route path="call/:id" element={<SingleCall />} />
-        <Route path="dialer" element={<Dialer />} />
-        <Route path="queue" element={<Queue />} />
-        <Route path="history" element={<CallHistory />} />
-      </Route>
-    </Routes>
+    <CallProvider>
+      <Routes>
+        <Route
+          path="/login"
+          element={<PublicRoute><Login /></PublicRoute>}
+        />
+        <Route
+          path="/register"
+          element={<PublicRoute><Register /></PublicRoute>}
+        />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<CallCenter />} />
+          <Route path="call/:id" element={<SingleCall />} />
+          <Route path="dialer" element={<Dialer />} />
+          <Route path="queue" element={<Queue />} />
+          <Route path="history" element={<CallHistory />} />
+        </Route>
+      </Routes>
+    </CallProvider>
   );
 }
 

@@ -84,7 +84,7 @@ export default function DashboardPage() {
   const activeCount = calls.filter((c) => c.status !== 'COMPLETED' && c.status !== 'FAILED' && c.status !== 'NO_ANSWER').length;
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col max-w-5xl mx-auto">
       <header className="flex items-center justify-between p-4 border-b">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
         <div className="flex items-center gap-4">

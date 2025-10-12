@@ -25,6 +25,10 @@ const Dialer = () => {
     setDialedNumber((prev) => prev.slice(0, -1));
   };
 
+  const handleClear = () => {
+    setDialedNumber("");
+  };
+
     const handleCall = async () => {
     if (!dialedNumber || isCalling) return;
 
@@ -63,6 +67,7 @@ const Dialer = () => {
           handleNumpadClick={handleNumpadClick}
           handleCall={handleCall}
           handleDelete={handleDelete}
+          handleClear={handleClear}
           isCalling={isCalling}
           error={error}
         />

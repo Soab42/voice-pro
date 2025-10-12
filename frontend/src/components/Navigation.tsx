@@ -15,14 +15,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+
+import { UserProfileSection } from "./UserProfileSection";
 
 export function Navigation() {
   const location = useLocation();
@@ -62,21 +56,7 @@ export function Navigation() {
     </>
   );
 
-  const user = {
-    name: "John Doe",
-    avatar: "JD",
-    role: "Admin",
-    company: "Voice Pro",
-  };
-
-  const onLogout = () => {
-    try {
-      localStorage.removeItem('token');
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-    } catch {}
-    navigate('/login', { replace: true });
-  };
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   return (
     <>
@@ -104,37 +84,4 @@ export function Navigation() {
       </div>
     </>
   );
-
-  function UserProfileSection() {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="w-full justify-start p-2">
-            <Avatar className="h-8 w-8 mr-3">
-              <AvatarFallback className="bg-indigo-100 text-indigo-700">
-                {user?.avatar}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 text-left">
-              <p className="text-sm text-gray-900">{user?.name}</p>
-              <p className="text-xs text-gray-500">{user?.role}</p>
-            </div>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            Profile Settings
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
 }
