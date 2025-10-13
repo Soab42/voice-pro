@@ -52,8 +52,40 @@ export interface PhoneNumber {
   updatedAt: string;
 }
 
-export function listNumbers(): Promise<PhoneNumber[]> {
-  return apiFetch<PhoneNumber[]>("/numbers");
+export interface Call {
+  id: string;
+  agentId: string | null;
+  customerNumber: string;
+  direction: string;
+  status:
+    | "INITIATED"
+    | "RINGING"
+    | "ACTIVE"
+    | "COMPLETED"
+    | "NO_ANSWER"
+    | "FAILED";
+  telnyxLegA: string | null;
+  telnyxLegB: string | null;
+  telnyxConferenceId: string | null;
+  recordingUrl: string | null;
+  aiSessionId: string | null;
+  cost: number | null;
+  startedAt: string;
+  answeredAt: string | null;
+  endedAt: string | null;
+}
+
+export interface PaginatedNumbers {
+  numbers: PhoneNumber[];
+  pagination: PaginationInfo;
+}
+
+export function listNumbers(page = 1, limit = 20): Promise<PaginatedNumbers> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  return apiFetch<PaginatedNumbers>(`/numbers?${params}`);
 }
 
 export const createNumber = async (
@@ -112,29 +144,6 @@ export const register = async (name, email, password) => {
   return response.json();
 };
 
-export interface Call {
-  id: string;
-  agentId: string | null;
-  customerNumber: string;
-  direction: string;
-  status:
-    | "INITIATED"
-    | "RINGING"
-    | "ACTIVE"
-    | "COMPLETED"
-    | "NO_ANSWER"
-    | "FAILED";
-  telnyxLegA: string | null;
-  telnyxLegB: string | null;
-  telnyxConferenceId: string | null;
-  recordingUrl: string | null;
-  aiSessionId: string | null;
-  cost: number | null;
-  startedAt: string;
-  answeredAt: string | null;
-  endedAt: string | null;
-}
-
 export const getCall = async (callId: string): Promise<Call> => {
   return apiFetch(`/calls/${callId}`);
 };
@@ -150,7 +159,9 @@ export const getCalls = async (): Promise<Call[]> => {
 };
 
 export const getTelnyxToken = async (): Promise<{ token: string }> => {
-  return apiFetch("/auth/telnyx-token");
+  return apiFetch("/auth/telnyx-token", {
+    method: "POST",
+  });
 };
 
 // Auth helpers
@@ -166,8 +177,29 @@ export interface LoginResponse {
   user: LoginResponseUser;
 }
 
-export function listCallHistory(): Promise<Call[]> {
-  return apiFetch<Call[]>("/calls/history");
+// Pagination types
+export interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+export interface PaginatedCallHistory {
+  calls: Call[];
+  pagination: PaginationInfo;
+}
+
+export function listCallHistory(
+  page = 1,
+  limit = 20
+): Promise<PaginatedCallHistory> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  return apiFetch<PaginatedCallHistory>(`/calls/history?${params}`);
 }
 
 // Start an outbound call
@@ -197,4 +229,49 @@ export function getCallHistoryByNumber(
 ): Promise<Call[]> {
   const encodedNumber = encodeURIComponent(customerNumber);
   return apiFetch<Call[]>(`/calls/history/${encodedNumber}`);
+}
+
+export interface WebhookRequest {
+  id: string;
+  method: string;
+  url: string;
+  headers: string;
+  body: string;
+  sourceIp?: string;
+  userAgent?: string;
+  timestamp: string;
+  processed: boolean;
+  error?: string;
+}
+
+export interface PaginatedWebhookRequests {
+  webhookRequests: WebhookRequest[];
+  pagination: PaginationInfo;
+}
+
+export function listWebhookRequests(
+  page = 1,
+  limit = 20
+): Promise<PaginatedWebhookRequests> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  return apiFetch<PaginatedWebhookRequests>(`/webhook-inspection?${params}`);
+}
+
+export function getWebhookRequest(id: string): Promise<WebhookRequest> {
+  return apiFetch<WebhookRequest>(`/webhook-inspection/${id}`);
+}
+
+export function deleteWebhookRequest(id: string): Promise<void> {
+  return apiFetch(`/webhook-inspection/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export function clearAllWebhookRequests(): Promise<void> {
+  return apiFetch("/webhook-inspection", {
+    method: "DELETE",
+  });
 }

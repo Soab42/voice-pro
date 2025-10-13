@@ -6,6 +6,7 @@ import SingleCall from "./components/SingleCall";
 import Dialer from "./components/Dialer";
 import Queue from "./components/Queue";
 import CallHistory from "./components/CallHistory";
+import WebhookInspector from "./components/WebhookInspector";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./components/Login";
 import Register from "./components/Register";
@@ -41,11 +42,12 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<CallCenter />} />
+          <Route index element={<Dialer />} />
           <Route path="call/:id" element={<SingleCall />} />
           <Route path="dialer" element={<Dialer />} />
           <Route path="queue" element={<Queue />} />
           <Route path="history" element={<CallHistory />} />
+          <Route path="webhook-inspector" element={<WebhookInspector />} />
         </Route>
       </Routes>
     </CallProvider>

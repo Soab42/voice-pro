@@ -46,7 +46,7 @@ function broadcast(event, payload) {
 }
 
 // Middleware configuration
-app.use(cors());
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 // Attach Socket.IO to request for access in routes if needed
@@ -63,6 +63,7 @@ const campaignRouter = require('./routes/campaign');
 const supervisorRouter = require('./routes/supervisor');
 const telnyxWebhookRouter = require('./routes/telnyxWebhook');
 const numbersRouter = require('./routes/numbers');
+const webhookInspectionRouter = require('./routes/webhookInspection');
 
 // Mount routes
 app.use('/api/auth', authRouter(prisma));
@@ -71,6 +72,7 @@ app.use('/api/campaign', campaignRouter(prisma));
 app.use('/api/supervisor', supervisorRouter(prisma));
 app.use('/api/telnyx/webhook', telnyxWebhookRouter(prisma));
 app.use('/api/numbers', numbersRouter(prisma));
+app.use('/api/webhook-inspection', webhookInspectionRouter(prisma));
 
 // Health check route
 app.get('/api/health', (req, res) => {

@@ -12,15 +12,15 @@ const DialerPanel = ({
   isCalling,
   error,
 }) => (
-  <div className="flex flex-col items-center space-y-2 z-10 mx-auto justify-end pb-10 lg:pb-20">
-        <Input
-      className="text-center !text-3xl h-28 w-full bg-transparent border-none tracking-wider"
+  <div className="flex flex-col items-center space-y-2 z-10  justify-end pb-10 lg:pb-20">
+    <Input
+      className="text-center !text-4xl h-28 font-bold bg-amber-100 rounded tracking-wider"
       value={dialedNumber}
       readOnly
       placeholder="(123) 456-7890"
     />
     {error && <div className="text-red-500 text-sm my-2">{error}</div>}
-    <div className="grid grid-cols-3 w-full gap-4 lg:gap-10">
+    <div className="grid grid-cols-3 w-full gap-4 pl-20 py-10 border-t">
       <NumpadButton number="1" letters=" " onClick={handleNumpadClick} />
       <NumpadButton number="2" letters="ABC" onClick={handleNumpadClick} />
       <NumpadButton number="3" letters="DEF" onClick={handleNumpadClick} />
@@ -34,7 +34,7 @@ const DialerPanel = ({
       <NumpadButton number="0" letters="" onClick={handleNumpadClick} />
       <NumpadButton number="#" letters="" onClick={handleNumpadClick} />
     </div>
-    <div className="flex items-center justify-between w-full mt-2 px-4 lg:px-16">
+    <div className="flex items-center justify-center w-full mt-2 gap-10">
       <Button
         variant="ghost"
         size="icon"
@@ -45,7 +45,7 @@ const DialerPanel = ({
       >
         <Plus />
       </Button>
-            <Button
+      <Button
         size="lg"
         className="rounded-full w-24 h-24 lg:w-28 lg:h-28 bg-green-500 hover:bg-green-600 text-white"
         onClick={handleCall}
@@ -64,17 +64,6 @@ const DialerPanel = ({
       >
         <Delete />
       </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className={`rounded-full w-20 h-20 lg:w-36 lg:h-36 transition-opacity ${
-          dialedNumber ? "opacity-100" : "opacity-0"
-        }`}
-        onClick={handleClear}
-        disabled={!dialedNumber}
-      >
-        Clear
-      </Button>
     </div>
   </div>
 );
@@ -84,7 +73,7 @@ export default DialerPanel;
 const NumpadButton = ({ number, letters, onClick }) => (
   <Button
     variant="outline"
-    className="w-20 h-20 lg:w-28 lg:h-28 rounded-full text-2xl lg:text-4xl flex flex-col bg-white/5 backdrop-blur-sm"
+    className="w-24 h-24 lg:w-28 lg:h-28 rounded-full text-2xl lg:text-4xl flex flex-col bg-white/5 backdrop-blur-sm"
     onClick={() => onClick(number)}
   >
     <div>{number}</div>

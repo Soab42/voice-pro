@@ -12,7 +12,7 @@ import {
 } from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { createNumber, listNumbers, PhoneNumber } from '../../lib/api';
+import { createNumber, listNumbers, PhoneNumber, PaginatedNumbers } from '../../lib/api';
 import { getSocket } from '../../lib/socket';
 import { Switch } from './ui/switch';
 
@@ -23,7 +23,9 @@ interface DirectoryProps {
 }
 
 const Directory: React.FC<DirectoryProps> = ({ onSelectContact }) => {
-  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [contacts, setContacts] = useState<PhoneNumber[]>([]);
+  const [hasMoreContacts, setHasMoreContacts] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [newContactName, setNewContactName] = useState('');
   const [newContactNumber, setNewContactNumber] = useState('');
   const [newContactEmail, setNewContactEmail] = useState('');
@@ -34,23 +36,45 @@ const Directory: React.FC<DirectoryProps> = ({ onSelectContact }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const mapToContact = (n: PhoneNumber): Contact => ({
-    id: n.id,
-    name: n.name ?? n.phone,
-    number: n.phone,
-  });
-
-  const loadNumbers = async () => {
+  const loadNumbers = async (page = 1, limit = 20, append = false) => {
     try {
-      setLoading(true);
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
-      const nums = await listNumbers();
-      setContacts(nums.map(mapToContact));
+      const result: PaginatedNumbers = await listNumbers(page, limit);
+
+      if (append) {
+        setContacts(prev => [...prev, ...result.numbers]);
+      } else {
+        setContacts(result.numbers);
+      }
+
+      setHasMoreContacts(result.pagination.hasNext);
+      setCurrentPage(page);
     } catch (e: any) {
       setError(e?.message || 'Failed to load directory');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const loadMoreContacts = () => {
+    if (hasMoreContacts && !loadingMore) {
+      loadNumbers(currentPage + 1, 20, true);
+    }
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    // Load more when user scrolls to within 100px of the bottom
+    if (scrollHeight - scrollTop - clientHeight < 100) {
+      loadMoreContacts();
     }
   };
 
@@ -58,13 +82,17 @@ const Directory: React.FC<DirectoryProps> = ({ onSelectContact }) => {
     loadNumbers();
     // live updates via socket
     const socket = getSocket();
-    const handler = () => loadNumbers();
+    const handler = () => loadNumbers(currentPage);
     socket.on('numbers:update', handler);
     return () => {
       socket.off('numbers:update', handler);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleSelectContact = (contact: PhoneNumber) => {
+    onSelectContact({ id: contact.id, name: contact.name || contact.phone, number: contact.phone });
+  };
 
   const handleAddContact = async () => {
     if (!newContactNumber) return;
@@ -80,8 +108,7 @@ const Directory: React.FC<DirectoryProps> = ({ onSelectContact }) => {
         provider: newContactProvider || null,
         active: newContactActive,
       });
-      const newContact = mapToContact(created);
-      setContacts((prev) => [newContact, ...prev]);
+      setContacts((prev) => [created, ...prev]);
       setNewContactName('');
       setNewContactNumber('');
       setNewContactEmail('');
@@ -196,23 +223,54 @@ const Directory: React.FC<DirectoryProps> = ({ onSelectContact }) => {
         </Dialog>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-96 overflow-y-auto" onScroll={handleScroll}>
           {loading && <div className="text-sm text-gray-500">Loading...</div>}
           {error && <div className="text-sm text-red-500">{error}</div>}
           {contacts.map((contact) => (
-            <div key={contact.id} className="flex items-center justify-between p-2 border rounded-lg">
-              <div className="flex items-center">
-                <User className="h-5 w-5 mr-2" />
-                <div>
-                  <div>{contact.name}</div>
-                  <div className="text-xs text-gray-500">{contact.number}</div>
+            <div
+              key={contact.id}
+              className="flex items-center justify-between p-3 border rounded-lg mb-2 hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => handleSelectContact(contact)}
+            >
+              <div className="flex items-center flex-1">
+                <User className="h-5 w-5 mr-3 text-gray-600" />
+                <div className="flex-1">
+                  <div className="font-medium text-sm">
+                    {contact.name || contact.phone}
+                  </div>
+                  <div className="text-xs text-gray-500">{contact.phone}</div>
+                  {contact.designation && (
+                    <div className="text-xs text-blue-600 mt-1">
+                      {contact.designation}
+                    </div>
+                  )}
                 </div>
               </div>
-              <Button size="sm" onClick={() => onSelectContact(contact)}>
-                Select
-              </Button>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`px-2 py-1 text-xs rounded-full ${contact.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                >
+                  {contact.active ? 'Active' : 'Inactive'}
+                </span>
+                <Button size="sm" variant="outline" onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelectContact(contact);
+                }}>
+                  Select
+                </Button>
+              </div>
             </div>
           ))}
+          {loadingMore && (
+            <div className="text-sm text-gray-500 text-center py-4">
+              Loading more contacts...
+            </div>
+          )}
+          {!hasMoreContacts && contacts.length > 0 && (
+            <div className="text-sm text-gray-500 text-center py-4">
+              No more contacts to load
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

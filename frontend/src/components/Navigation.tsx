@@ -9,6 +9,7 @@ import {
   Users,
   PhoneCall,
   History,
+  Webhook,
 } from "lucide-react";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -23,10 +24,11 @@ export function Navigation() {
   const navigate = useNavigate();
 
   const navigationItems = [
-    { id: "callcenter", label: "Call Center", icon: Phone, path: "/" },
+    // { id: "callcenter", label: "Call Center", icon: Phone, path: "/" },
     { id: "dialer", label: "Dialer", icon: PhoneCall, path: "/dialer" },
     { id: "queue", label: "Queue", icon: Users, path: "/queue" },
     { id: "history", label: "History", icon: History, path: "/history" },
+    { id: "webhook-inspector", label: "Webhook Inspector", icon: Webhook, path: "/webhook-inspector" },
   ];
 
   const NavItems = () => (

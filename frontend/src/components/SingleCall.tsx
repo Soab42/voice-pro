@@ -110,12 +110,21 @@ const SingleCall = () => {
   }, [call]);
 
   useEffect(() => {
-    const client = initTelnyxClient();
-    client.on("telnyx.notification", (notification: any) => {
-      if (notification.type === "call.invite") {
-        acceptTelnyxCall(notification.call);
+    const initializeTelnyx = async () => {
+      try {
+        const client = await initTelnyxClient();
+        console.log("client", client);
+        client.on("telnyx.notification", (notification: any) => {
+          if (notification.type === "call.invite") {
+            acceptTelnyxCall(notification.call);
+          }
+        });
+      } catch (error) {
+        console.error("Error initializing Telnyx client:", error);
       }
-    });
+    };
+
+    initializeTelnyx();
   }, []);
 
   useEffect(() => {

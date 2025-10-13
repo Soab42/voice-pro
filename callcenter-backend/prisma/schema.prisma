@@ -94,3 +94,16 @@ model PhoneNumber {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model WebhookRequest {
+  id        String   @id @default(cuid())
+  method    String // HTTP method (POST, GET, etc.)
+  url       String // The full URL that was requested
+  headers   String // JSON string of request headers
+  body      String // Raw request body
+  sourceIp  String? // Source IP address
+  userAgent String? // User agent string
+  timestamp DateTime @default(now())
+  processed Boolean  @default(false) // Whether this request was processed successfully
+  error     String? // Error message if processing failed
+}

@@ -23,11 +23,9 @@ module.exports = function numbersRouter(prisma) {
         designation = null,
       } = req.body || {};
       if (!phone || !isValidPhone(phone)) {
-        return res
-          .status(400)
-          .json({
-            error: "Invalid or missing 'phone' (use E.164 like +15551234567)",
-          });
+        return res.status(400).json({
+          error: "Invalid or missing 'phone' (use E.164 like +15551234567)",
+        });
       }
 
       const created = await prisma.phoneNumber.create({
@@ -55,13 +53,32 @@ module.exports = function numbersRouter(prisma) {
     }
   });
 
-  // List all phone numbers
+  // List all phone numbers with pagination
   router.get("/", requireAuth, async (req, res, next) => {
     try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const offset = (page - 1) * limit;
+
       const items = await prisma.phoneNumber.findMany({
         orderBy: { createdAt: "desc" },
+        take: limit,
+        skip: offset,
       });
-      res.json(items);
+
+      // Get total count for pagination info
+      const totalCount = await prisma.phoneNumber.count();
+
+      res.json({
+        numbers: items,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalCount,
+          hasNext: page * limit < totalCount,
+          hasPrev: page > 1,
+        },
+      });
     } catch (err) {
       next(err);
     }

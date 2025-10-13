@@ -74,12 +74,31 @@ module.exports = function callsRouter(prisma) {
   router.get("/history", requireAuth, async (req, res, next) => {
     console.log("history");
     try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const offset = (page - 1) * limit;
+
       const calls = await prisma.call.findMany({
         orderBy: {
           startedAt: "desc",
         },
+        take: limit,
+        skip: offset,
       });
-      res.json(calls);
+
+      // Get total count for pagination info
+      const totalCount = await prisma.call.count();
+
+      res.json({
+        calls,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalCount,
+          hasNext: page * limit < totalCount,
+          hasPrev: page > 1,
+        },
+      });
     } catch (err) {
       next(err);
     }

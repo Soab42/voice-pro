@@ -23,10 +23,43 @@ module.exports = function telnyxWebhookRouter(prisma) {
 
   router.post("/", async (req, res, next) => {
     try {
+      // Capture and store the webhook request for inspection
+      const webhookRequest = await prisma.webhookRequest.create({
+        data: {
+          method: req.method,
+          url: `${req.protocol}://${req.get("host")}${req.originalUrl}`,
+          headers: JSON.stringify(req.headers),
+          body: JSON.stringify(req.body),
+          sourceIp: req.ip || req.connection.remoteAddress,
+          userAgent: req.get("User-Agent"),
+          processed: false,
+        },
+      });
+
+      // Store webhook request ID in request object for error handling
+      req.webhookRequestId = webhookRequest.id;
+
+      // Broadcast the webhook request in real-time for inspection
+      req.broadcast("webhookReceived", {
+        id: webhookRequest.id,
+        method: req.method,
+        url: `${req.protocol}://${req.get("host")}${req.originalUrl}`,
+        headers: req.headers,
+        body: req.body,
+        sourceIp: req.ip || req.connection.remoteAddress,
+        userAgent: req.get("User-Agent"),
+        timestamp: new Date().toISOString(),
+      });
+
       const { data } = req.body || {};
       const event = data?.event_type;
       const payload = data?.payload;
       if (!event || !payload) {
+        // Update the webhook request as processed (but no event to handle)
+        await prisma.webhookRequest.update({
+          where: { id: webhookRequest.id },
+          data: { processed: true },
+        });
         return res.json({ received: true });
       }
       const callControlId = payload.call_control_id;
@@ -71,7 +104,7 @@ module.exports = function telnyxWebhookRouter(prisma) {
             // } catch (err) {
             //   console.error("Failed to start AI:", err.message);
             // }
-            req.broadcast("callUpdate", { id: call.id, status: "RINGING", customerNumber: payload.from ?? payload.caller_id_name });
+            req.broadcast("callUpdate", { ...call, status: "RINGING" });
           } else {
             // Outbound call is ringing
             if (call) {
@@ -79,7 +112,7 @@ module.exports = function telnyxWebhookRouter(prisma) {
                 where: { id: call.id },
                 data: { status: "RINGING" },
               });
-              req.broadcast("callUpdate", { id: call.id, status: "RINGING" });
+              req.broadcast("callUpdate", { ...call, status: "RINGING" });
             }
           }
           break;
@@ -91,7 +124,7 @@ module.exports = function telnyxWebhookRouter(prisma) {
               data: { status: "ACTIVE", answeredAt: new Date() },
             });
             // Optionally start recording or AI on answer for outbound calls
-            req.broadcast("callUpdate", { id: call.id, status: "ACTIVE" });
+            req.broadcast("callUpdate", { ...call, status: "ACTIVE" });
           }
           break;
         }
@@ -111,7 +144,7 @@ module.exports = function telnyxWebhookRouter(prisma) {
                 data: { status: "ACTIVE" },
               });
             }
-            req.broadcast("callUpdate", { id: call.id, status: "ACTIVE" });
+            req.broadcast("callUpdate", { ...call, status: "ACTIVE" });
           }
           break;
         }
@@ -121,7 +154,7 @@ module.exports = function telnyxWebhookRouter(prisma) {
               where: { id: call.id },
               data: { status: "COMPLETED", endedAt: new Date() },
             });
-            req.broadcast("callUpdate", { id: call.id, status: "COMPLETED" });
+            req.broadcast("callUpdate", { ...call, status: "COMPLETED" });
           }
           break;
         }
@@ -131,7 +164,7 @@ module.exports = function telnyxWebhookRouter(prisma) {
               where: { id: call.id },
               data: { status: "NO_ANSWER" },
             });
-            req.broadcast("callUpdate", { id: call.id, status: "NO_ANSWER" });
+            req.broadcast("callUpdate", { ...call, status: "NO_ANSWER" });
           }
           break;
         }
@@ -187,8 +220,39 @@ module.exports = function telnyxWebhookRouter(prisma) {
           // Unhandled events are ignored
           break;
       }
+
+      // Mark webhook request as processed successfully
+      await prisma.webhookRequest.update({
+        where: { id: webhookRequest.id },
+        data: { processed: true },
+      });
+
+      // Broadcast webhook processing completion
+      req.broadcast("webhookProcessed", {
+        id: webhookRequest.id,
+        processed: true,
+        timestamp: new Date().toISOString(),
+      });
+
       res.json({ received: true });
     } catch (err) {
+      // Update webhook request with error status if processing failed
+      if (req.webhookRequestId) {
+        await prisma.webhookRequest.update({
+          where: { id: req.webhookRequestId },
+          data: {
+            processed: true,
+            error: err.message,
+          },
+        });
+
+        // Broadcast webhook processing error
+        req.broadcast("webhookError", {
+          id: req.webhookRequestId,
+          error: err.message,
+          timestamp: new Date().toISOString(),
+        });
+      }
       next(err);
     }
   });
