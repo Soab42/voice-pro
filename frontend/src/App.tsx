@@ -11,7 +11,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import PublicRoute from "./components/PublicRoute";
-
+import CallView from "./components/CallView";
+import DemoNew from "./components/demo-new";
 import { CallProvider } from "./context/CallContext";
 
 function App() {
@@ -48,6 +49,8 @@ function App() {
           <Route path="queue" element={<Queue />} />
           <Route path="history" element={<CallHistory />} />
           <Route path="webhook-inspector" element={<WebhookInspector />} />
+          <Route path="call-view" element={<CallView />} />
+          <Route path="new" element={<DemoNew />} />
         </Route>
       </Routes>
     </CallProvider>

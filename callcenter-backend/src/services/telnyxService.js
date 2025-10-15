@@ -7,12 +7,12 @@
  * and other settings are pulled from environment variables.
  */
 
-const TELNYX_BASE = 'https://api.telnyx.com/v2';
-
+const TELNYX_BASE = "https://api.telnyx.com/v2";
+const TELNYX_WEBHOOK_URL = process.env.TELNYX_WEBHOOK_URL;
 function authHeaders() {
   return {
     Authorization: `Bearer ${process.env.TELNYX_API_KEY}`,
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   };
 }
 
@@ -35,34 +35,44 @@ async function dial({ to, from, connection_id }) {
     to,
     from: from || process.env.TELNYX_ANI,
     connection_id: connection_id || process.env.TELNYX_CONNECTION_ID,
+    webhook_url: TELNYX_WEBHOOK_URL,
   };
-  return request('/calls', { method: 'POST', body: JSON.stringify(body) });
+  return request("/calls", { method: "POST", body: JSON.stringify(body) });
 }
 
 // Answers an incoming call given a call_control_id
 async function answer(callControlId) {
-  return request(`/calls/${callControlId}/actions/answer`, { method: 'POST' });
+  return request(`/calls/${callControlId}/actions/answer`, {
+    method: "POST",
+    body: JSON.stringify({
+      webhook_url: TELNYX_WEBHOOK_URL,
+      stream_url: TELNYX_WEBHOOK_URL,
+    }),
+  });
 }
 
 // Hangs up a call given a call_control_id
 async function hangup(callControlId) {
-  return request(`/calls/${callControlId}/actions/hangup`, { method: 'POST' });
+  return request(`/calls/${callControlId}/actions/hangup`, { method: "POST" });
 }
 
 // Bridges two call legs together
 async function bridge(callControlIdA, callControlIdB) {
-  const body = { call_control_id: callControlIdB };
+  const body = {
+    call_control_id: callControlIdB,
+    webhook_url: TELNYX_WEBHOOK_URL,
+  };
   return request(`/calls/${callControlIdA}/actions/bridge`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify(body),
   });
 }
 
 // Starts recording on a live call
 async function startRecording(callControlId, options = {}) {
-  const body = { channels: 'dual', ...options };
+  const body = { channels: "dual", ...options };
   return request(`/calls/${callControlId}/actions/record_start`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify(body),
   });
 }
@@ -70,16 +80,20 @@ async function startRecording(callControlId, options = {}) {
 // Starts the built‑in Telnyx AI assistant on a call
 async function startAI(callControlId, config = {}) {
   return request(`/calls/${callControlId}/actions/ai_assistant_start`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify(config),
   });
 }
 
 // Starts media streaming (bi‑directional) for custom AI
 async function startStreaming(callControlId, streamUrl) {
-  const body = { stream_url: streamUrl, bidirectional: true };
+  const body = {
+    stream_url: streamUrl,
+    bidirectional: true,
+    webhook_url: TELNYX_WEBHOOK_URL,
+  };
   return request(`/calls/${callControlId}/actions/streaming_start`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify(body),
   });
 }
@@ -89,9 +103,13 @@ async function startStreaming(callControlId, streamUrl) {
 // automatically if needed. You can specify supervisor_role: 'monitor',
 // 'whisper', or 'barge' and whisper_to for whispering to specific legs.
 async function joinConference(conferenceId, callControlId, options = {}) {
-  const body = { call_control_id: callControlId, ...options };
+  const body = {
+    call_control_id: callControlId,
+    ...options,
+    webhook_url: TELNYX_WEBHOOK_URL,
+  };
   return request(`/conferences/${conferenceId}/actions/join`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify(body),
   });
 }
@@ -99,8 +117,8 @@ async function joinConference(conferenceId, callControlId, options = {}) {
 // Switches supervisor role on a call or conference participant
 async function switchRole(callControlId, options = {}) {
   return request(`/calls/${callControlId}/actions/switch_supervisor_role`, {
-    method: 'POST',
-    body: JSON.stringify(options),
+    method: "POST",
+    body: JSON.stringify({ ...options, webhook_url: TELNYX_WEBHOOK_URL }),
   });
 }
 

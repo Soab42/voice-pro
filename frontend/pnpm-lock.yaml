@@ -92,6 +92,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.14
         version: 4.1.14(vite@6.3.5(@types/node@20.19.20)(jiti@2.6.1)(lightningcss@1.30.1))
+      '@telnyx/react-client':
+        specifier: ^1.0.2
+        version: 1.0.2(@telnyx/webrtc@2.23.1-beta.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@telnyx/webrtc':
         specifier: 2.23.1-beta.5
         version: 2.23.1-beta.5
@@ -1269,6 +1272,14 @@ packages:
     resolution: {integrity: sha512-BoFUoU0XqgCUS1UXWhmDJroKKhNXeDzD7/XwabjkDIAbMnc4ULn5e2FuEuBbhZ6ENZoSYzKlzvZ44Yr6EUDUSA==}
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7
+
+  '@telnyx/react-client@1.0.2':
+    resolution: {integrity: sha512-04wGzJNrvqo18Jjx3ndApGsRj4YArpyu8j7oWUbIr1It5sjRrZl5gz3MYZ+q251yhUOmsSoqL91ibRgRO7UxNg==}
+    engines: {node: '>=14.x'}
+    peerDependencies:
+      '@telnyx/webrtc': '>=2.9.0'
+      react: '>=16.8'
+      react-dom: '>=16.8'
 
   '@telnyx/webrtc@2.23.1-beta.5':
     resolution: {integrity: sha512-yiL4chcU4Nwyj+euC2zecyZHUFfwZMQfsPDm7Dzholo3XQUuY7Fy1bhiyk1A6g9v5w2tMgyPIdngaiq2GiAbIg==}
@@ -2754,6 +2765,12 @@ snapshots:
       '@tailwindcss/oxide': 4.1.14
       tailwindcss: 4.1.14
       vite: 6.3.5(@types/node@20.19.20)(jiti@2.6.1)(lightningcss@1.30.1)
+
+  '@telnyx/react-client@1.0.2(@telnyx/webrtc@2.23.1-beta.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@telnyx/webrtc': 2.23.1-beta.5
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   '@telnyx/webrtc@2.23.1-beta.5':
     dependencies:
