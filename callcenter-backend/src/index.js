@@ -37,7 +37,12 @@ app.use(morgan('dev'));  // or 'dev' for colored concise logs
 
 // Configure Socket.IO for real‑time updates
 const io = new socketIO.Server(server, {
-  cors: { origin: '*', methods: ['GET', 'POST'] },
+  cors: {
+    origin: "*", // Allow all origins in development
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["*"],
+    credentials: true
+  },
 });
 
 // Helper function to broadcast events to all connected clients
