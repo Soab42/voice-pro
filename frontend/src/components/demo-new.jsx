@@ -2,10 +2,9 @@
 import { TelnyxRTCProvider } from "@telnyx/react-client";
 
 // Phone.jsx
-import { useNotification, Audio, } from "@telnyx/react-client";
+import { useNotification, Audio } from "@telnyx/react-client";
 import { useCallbacks } from "@telnyx/react-client";
 import { useTelnyxRTC } from "@telnyx/react-client";
-
 
 function App() {
   const credential = {
@@ -30,11 +29,17 @@ function Phone() {
 
   const notification = useNotification();
   const activeCall = notification && notification.call;
-  const client = useTelnyxRTC({ login_token: localStorage.getItem("telnyxToken") });
+  const client = useTelnyxRTC({
+    login_token: localStorage.getItem("telnyxToken"),
+  });
 
   client.on("telnyx.ready", () => {
-    console.log("client ready",client);
+    console.log("client ready", client);
   });
+
+  function call() {
+    client.newCall({ destinationNumber: "1234567890" });
+  }
 
   return (
     <div>
@@ -43,6 +48,8 @@ function Phone() {
         "You have an incoming call."}
 
       <Audio stream={activeCall && activeCall.remoteStream} />
+
+      <button onClick={call}> call</button>
     </div>
   );
 }
